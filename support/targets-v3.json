@@ -355,7 +355,7 @@
       "requiresFreshP0Session": true,
       "exploit": {
         "url": "https://raw.githubusercontent.com/BuSung-dev/Root-My-Galaxy-Payloads/main/artifacts/q4q-F9360ZCSAIZH2/cve-2026-43499-app.so",
-        "size": 133800
+        "size": 134392
       },
       "kernelsu": {
         "url": "https://raw.githubusercontent.com/BuSung-dev/Root-My-Galaxy-Payloads/main/kernelsu/ksud-q4q-F9360ZCSAIZH2-kdp",

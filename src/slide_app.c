@@ -2560,6 +2560,11 @@ static int slide_leak_physical_base(void) {
   }
   if (gate_result == 0) {
     pr_warning("p0 physical pipe reclaim miss\n");
+    /* 调试期：判定失败后不再重试，避免继续往错页写入导致内核 panic */
+    app_trace("STOP: reclaim miss after gate, abort before retry");
+    if (getenv("RMG_ABORT_ON_MISS") || 1) {
+      _exit(0);
+    }
     return 0;
   }
   app_publish_p0_dirty();

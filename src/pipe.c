@@ -1121,6 +1121,7 @@ int verify_p0_pipe_oracle_gate(void) {
     if (gate_offset != PAGE_SIZE) {
       gate_hits++;
       gate_pipe_index = (int)pipe_index;
+      app_trace("gate: hit pipe=%zu offset=%zu", pipe_index, gate_offset);
       pr_info("p0 gate marker pipe=%zu offset=%zu\n",
               pipe_index, gate_offset);
     } else if (memcmp(page, "RMG-P0-PIPE", 11) != 0) {
@@ -1154,6 +1155,8 @@ int verify_p0_pipe_oracle_gate(void) {
   }
   pr_info("p0 pipe gate hits=%d changed=%d\n",
           gate_hits, changed_pages);
+  app_trace("gate: summary hits=%d changed=%d gate_pipe=%d", gate_hits,
+            changed_pages, gate_pipe_index);
   if (gate_hits != 0 || changed_pages != 0) {
     spawn_p0_ref_keeper(
         gate_hits == 1 && changed_pages == 0 ? gate_pipe_index : -1);

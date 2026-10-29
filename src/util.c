@@ -11,26 +11,42 @@
 #include <string.h>
 
 /* 落盘式 trace：内核 panic 时 logcat 与 stdout 全丢，只有已 fsync 的文件还在 */
+static int app_trace_open(void) {
+  char cmd[256];
+  int f = open("/proc/self/cmdline", O_RDONLY | O_CLOEXEC);
+  if (f < 0) {
+    pr_warning("trace: cmdline open errno=%d\n", errno);
+    return -1;
+  }
+  ssize_t n = read(f, cmd, sizeof(cmd) - 1);
+  close(f);
+  if (n <= 0) {
+    pr_warning("trace: cmdline read n=%zd errno=%d\n", n, errno);
+    return -1;
+  }
+  cmd[n] = 0;
+  char *colon = strchr(cmd, ':');
+  if (colon) *colon = 0;
+
+  char path[320];
+  int fd = -1;
+  const char *dirs[] = {"/data/user/0/%s/files/trace.log",
+                        "/data/data/%s/files/trace.log"};
+  for (size_t i = 0; i < sizeof(dirs) / sizeof(dirs[0]) && fd < 0; i++) {
+    int len = snprintf(path, sizeof(path), dirs[i], cmd);
+    if (len <= 0 || (size_t)len >= sizeof(path)) continue;
+    fd = open(path, O_WRONLY | O_CREAT | O_APPEND | O_SYNC, 0600);
+    if (fd < 0) {
+      pr_warning("trace: open %s errno=%d\n", path, errno);
+    }
+  }
+  return fd;
+}
+
 void app_trace(const char *fmt, ...) {
   static int trace_fd = -2;
   if (trace_fd == -2) {
-    trace_fd = -1;
-    char cmd[256];
-    int f = open("/proc/self/cmdline", O_RDONLY | O_CLOEXEC);
-    if (f >= 0) {
-      ssize_t n = read(f, cmd, sizeof(cmd) - 1);
-      close(f);
-      if (n > 0) {
-        cmd[n] = 0;
-        char *colon = strchr(cmd, ':');
-        if (colon) *colon = 0;
-        char path[320];
-        int len = snprintf(path, sizeof(path), "/data/user/0/%s/files/trace.log", cmd);
-        if (len > 0 && (size_t)len < sizeof(path)) {
-          trace_fd = open(path, O_WRONLY | O_CREAT | O_APPEND | O_SYNC, 0600);
-        }
-      }
-    }
+    trace_fd = app_trace_open();
   }
   if (trace_fd < 0) return;
   char line[512];
@@ -2665,9 +2681,13 @@ ssize_t configfs_write_once(int fd, uintptr_t target, const void *data, size_t l
       !((base >> 24) & 0xff) || !((base >> 32) & 0xff) ||
       !((base >> 40) & 0xff) || !((base >> 48) & 0xff) ||
       !((base >> 56) & 0xff)) {
+    app_trace("cfgw: REJECT target=%016zx base=%016zx end=%zx", target, base,
+              (size_t)end);
     errno = ERANGE;
     return -1;
   }
+  app_trace("cfgw: target=%016zx base=%016zx end=%zx len=%zu", target, base,
+            (size_t)end, len);
   for (uintptr_t candidate_size = end;
        candidate_size <= max_write_window && candidate_size - end < 0x200;
        candidate_size++) {
