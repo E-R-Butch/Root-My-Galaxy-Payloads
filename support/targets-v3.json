@@ -331,6 +331,36 @@
         "url": "https://raw.githubusercontent.com/BuSung-dev/Root-My-Galaxy-Payloads/main/kernelsu/ksud-e3q-S9280ZCS6DZF2-kdp",
         "size": 4879856
       }
+    },
+    {
+      "payloadId": "q4q-F9360ZCSAIZF1",
+      "displayName": "Galaxy Z Fold4 · F9360ZCSAIZF1 (2026-06)",
+      "models": ["SM-F9360"],
+      "kernelVersions": ["5.10.236"],
+      "requiresFreshP0Session": true,
+      "exploit": {
+        "url": "https://raw.githubusercontent.com/BuSung-dev/Root-My-Galaxy-Payloads/main/artifacts/q4q-F9360ZCSAIZF1/cve-2026-43499-app.so",
+        "size": 134000
+      },
+      "kernelsu": {
+        "url": "https://raw.githubusercontent.com/BuSung-dev/Root-My-Galaxy-Payloads/main/kernelsu/ksud-q4q-F9360ZCSAIZF1-kdp",
+        "size": 4858336
+      }
+    },
+    {
+      "payloadId": "q4q-F9360ZCSAIZH2",
+      "displayName": "Galaxy Z Fold4 · F9360ZCSAIZH2 (2026-08)",
+      "models": ["SM-F9360"],
+      "kernelVersions": ["5.10.236"],
+      "requiresFreshP0Session": true,
+      "exploit": {
+        "url": "https://raw.githubusercontent.com/BuSung-dev/Root-My-Galaxy-Payloads/main/artifacts/q4q-F9360ZCSAIZH2/cve-2026-43499-app.so",
+        "size": 134000
+      },
+      "kernelsu": {
+        "url": "https://raw.githubusercontent.com/BuSung-dev/Root-My-Galaxy-Payloads/main/kernelsu/ksud-q4q-F9360ZCSAIZH2-kdp",
+        "size": 4858336
+      }
     }
   ]
 }
