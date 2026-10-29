@@ -12,33 +12,43 @@
 
 /* 落盘式 trace：内核 panic 时 logcat 与 stdout 全丢，只有已 fsync 的文件还在 */
 static int app_trace_open(void) {
-  char cmd[256];
+  char cmd[512];
   int f = open("/proc/self/cmdline", O_RDONLY | O_CLOEXEC);
-  if (f < 0) {
-    pr_warning("trace: cmdline open errno=%d\n", errno);
-    return -1;
-  }
+  if (f < 0) return -1;
   ssize_t n = read(f, cmd, sizeof(cmd) - 1);
   close(f);
-  if (n <= 0) {
-    pr_warning("trace: cmdline read n=%zd errno=%d\n", n, errno);
-    return -1;
-  }
+  if (n <= 0) return -1;
   cmd[n] = 0;
-  char *colon = strchr(cmd, ':');
-  if (colon) *colon = 0;
+
+  /* cmdline 可能是包名，也可能是 root helper 的 .so 全路径
+   * (/data/app/~~hash==/<pkg>-<suffix>/lib/arm64/libcve43499root.so) */
+  char pkg[128] = {0};
+  const char *app = strstr(cmd, "/data/app/");
+  if (app) {
+    const char *slash = strchr(app + 10, '/');
+    if (slash) {
+      const char *comp = slash + 1;
+      const char *dash = strchr(comp, '-');
+      size_t len = dash ? (size_t)(dash - comp) : strcspn(comp, "/");
+      if (len > 0 && len < sizeof(pkg)) {
+        memcpy(pkg, comp, len);
+      }
+    }
+  } else {
+    const char *colon = strchr(cmd, ':');
+    size_t len = colon ? (size_t)(colon - cmd) : strlen(cmd);
+    if (len > 0 && len < sizeof(pkg)) memcpy(pkg, cmd, len);
+  }
+  if (!pkg[0]) return -1;
 
   char path[320];
   int fd = -1;
   const char *dirs[] = {"/data/user/0/%s/files/trace.log",
                         "/data/data/%s/files/trace.log"};
   for (size_t i = 0; i < sizeof(dirs) / sizeof(dirs[0]) && fd < 0; i++) {
-    int len = snprintf(path, sizeof(path), dirs[i], cmd);
+    int len = snprintf(path, sizeof(path), dirs[i], pkg);
     if (len <= 0 || (size_t)len >= sizeof(path)) continue;
     fd = open(path, O_WRONLY | O_CREAT | O_APPEND | O_SYNC, 0600);
-    if (fd < 0) {
-      pr_warning("trace: open %s errno=%d\n", path, errno);
-    }
   }
   return fd;
 }
