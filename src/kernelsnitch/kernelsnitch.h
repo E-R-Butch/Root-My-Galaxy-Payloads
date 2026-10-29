@@ -480,7 +480,11 @@ void kernelsnitch_find_collisions(struct kernelsnitch_shared_state *ks)
         ks->state = KERNELSNITCH_COLLISIONS_FOUND;
     } else {
         pr_warning("only found %zd collisions -> cannot continue\n", count);
+#if defined(APP_PAYLOAD) && APP_PAYLOAD
+        if (1) {  /* APP_PAYLOAD: always report timing window */
+#else
         if (getenv("KSNITCH_TIMING_DIAG")) {
+#endif
             size_t min_t = (size_t)-1, max_t = 0, sum_t = 0, n_t = 0;
             for (size_t i = 2; i < ks->total_futexes; ++i) {
                 id = (i * KS_PAGE_SIZE) | (i * 8 % KS_PAGE_SIZE);

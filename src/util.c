@@ -1,6 +1,8 @@
 #include "common.h"
 #include "kernelsnitch/kernelsnitch.h"
 
+#include <sched.h>
+
 static struct kernelsnitch_shared_state *ks;
 static size_t mm_objs_per_slab;
 static unsigned char *skb_buf;
@@ -441,6 +443,31 @@ static void put_slide_bank_entry(unsigned char *p, uintptr_t payload_base,
 
 void setup_kernelsnitch(void) {
   int cpu_count = (int)sysconf(_SC_NPROCESSORS_ONLN);
+  {
+    cpu_set_t aff;
+    int aff_n = -1;
+    if (sched_getaffinity(0, sizeof(aff), &aff) == 0) aff_n = CPU_COUNT(&aff);
+    int stat_n = 0;
+    FILE *fp = fopen("/proc/stat", "re");
+    if (fp) {
+      char line[256];
+      while (fgets(line, sizeof(line), fp)) {
+        if (strncmp(line, "cpu", 3) == 0 && line[3] >= '0' && line[3] <= '9') stat_n++;
+      }
+      fclose(fp);
+    }
+    char onl[64] = "?";
+    fp = fopen("/sys/devices/system/cpu/online", "re");
+    if (fp) {
+      if (fgets(onl, sizeof(onl), fp)) {
+        char *nl = strchr(onl, '\n');
+        if (nl) *nl = 0;
+      }
+      fclose(fp);
+    }
+    pr_info("[diag] cpu sysconf_onln=%d sysconf_conf=%ld affinity_n=%d proc_stat_n=%d sys_online=%s\n",
+            cpu_count, sysconf(_SC_NPROCESSORS_CONF), aff_n, stat_n, onl);
+  }
 #if defined(APP_REQUIRE_FRESH_P0_SESSION) && APP_REQUIRE_FRESH_P0_SESSION
   ks = kernelsnitch_setup(
       MM_STRUCT_SZ, MM_ORDER, cpu_count, KSNITCH_COLLISIONS,

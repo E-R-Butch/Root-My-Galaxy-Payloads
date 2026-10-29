@@ -330,7 +330,7 @@
  * itself is still unproven on q4q hardware (KernelSnitch-stage panic;
  * see docs/SM-F9360-F9360ZCSAIZF1.md) — this value only aligns the app
  * build with the proven supervisor configuration. */
-#define SLIDE_KSNITCH_APPENDED_FUTEXES 1024
+#define SLIDE_KSNITCH_APPENDED_FUTEXES 2048
 #define SLIDE_KSNITCH_REPEAT_MEASUREMENT 64
 #define SLIDE_KSNITCH_AVERAGE 8
 #define SLIDE_BANK_SLOTS 4

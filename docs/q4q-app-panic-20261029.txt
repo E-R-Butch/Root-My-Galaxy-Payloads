@@ -1,0 +1,21 @@
+[ 5948.395624] [0:   cve43499-run:19560] Unable to handle kernel paging request at virtual address ffffffc050293c68
+[ 5948.395653] [0:   cve43499-run:19560] Mem abort info:
+[ 5948.395662] [0:   cve43499-run:19560]   ESR = 0x96000007
+[ 5948.395671] [0:   cve43499-run:19560]   EC = 0x25: DABT (current EL), IL = 32 bits
+[ 5948.395679] [0:   cve43499-run:19560]   SET = 0, FnV = 0
+[ 5948.395686] [0:   cve43499-run:19560]   EA = 0, S1PTW = 0
+[ 5948.395694] [0:   cve43499-run:19560] Data abort info:
+[ 5948.397900] [0:   cve43499-run:19560] pc : __list_del_entry_valid+0x48/0xcc
+[ 5948.398040] [0:   cve43499-run:19560] x13: 000000000000001c x12: 000000000000001d 
+[ 5948.398053] [0:   cve43499-run:19560] x11: 0000000a80000000 x10: dead000000000100 
+[ 5948.398067] [0:   cve43499-run:19560] x9 : ffffffff20811c08 x8 : ffffffc050293c60 
+[ 5948.398081] [0:   cve43499-run:19560] x7 : ffffffff265706c0 x6 : ffffffc0498139d0 
+[ 5948.398094] [0:   cve43499-run:19560] x5 : 0000000000000000 x4 : 0000000000000001 
+[ 5948.398108] [0:   cve43499-run:19560] x3 : ffffffc00a8e7640 x2 : ffffffff2107c208 
+[ 5948.398122] [0:   cve43499-run:19560] x1 : ffffffff2107c208 x0 : ffffffff2107c208 
+[ 5948.398137] [0:   cve43499-run:19560] Call trace:
+[ 5948.398146] [0:   cve43499-run:19560]  __list_del_entry_valid+0x48/0xcc
+[ 5948.398155] [0:   cve43499-run:19560]  move_freepages_block+0x1dc/0x24c
+[ 5948.398163] [0:   cve43499-run:19560]  steal_suitable_fallback+0x184/0x2a4
+[ 5948.398172] [0:   cve43499-run:19560]  rmqueue+0x3b8/0x10fc
+[ 5948.398180] [0:   cve43499-run:19560]  get_page_from_freelist+0x1bc/0x30c

