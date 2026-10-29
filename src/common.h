@@ -482,3 +482,6 @@ void start_p0_ref_keeper(void);
 int install_android_root(int fd);
 
 #endif
+
+/* APP_PAYLOAD 落盘 trace（O_SYNC），panic 后仍可读 */
+void app_trace(const char *fmt, ...);

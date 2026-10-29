@@ -3,6 +3,52 @@
 
 #include <sched.h>
 
+#if defined(APP_PAYLOAD) && APP_PAYLOAD
+#include <stdarg.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <string.h>
+
+/* 落盘式 trace：内核 panic 时 logcat 与 stdout 全丢，只有已 fsync 的文件还在 */
+void app_trace(const char *fmt, ...) {
+  static int trace_fd = -2;
+  if (trace_fd == -2) {
+    trace_fd = -1;
+    char cmd[256];
+    int f = open("/proc/self/cmdline", O_RDONLY | O_CLOEXEC);
+    if (f >= 0) {
+      ssize_t n = read(f, cmd, sizeof(cmd) - 1);
+      close(f);
+      if (n > 0) {
+        cmd[n] = 0;
+        char *colon = strchr(cmd, ':');
+        if (colon) *colon = 0;
+        char path[320];
+        int len = snprintf(path, sizeof(path), "/data/user/0/%s/files/trace.log", cmd);
+        if (len > 0 && (size_t)len < sizeof(path)) {
+          trace_fd = open(path, O_WRONLY | O_CREAT | O_APPEND | O_SYNC, 0600);
+        }
+      }
+    }
+  }
+  if (trace_fd < 0) return;
+  char line[512];
+  va_list ap;
+  va_start(ap, fmt);
+  int len = vsnprintf(line, sizeof(line) - 2, fmt, ap);
+  va_end(ap);
+  if (len <= 0) return;
+  if ((size_t)len > sizeof(line) - 2) len = sizeof(line) - 2;
+  line[len++] = '\n';
+  ssize_t ignored = write(trace_fd, line, (size_t)len);
+  (void)ignored;
+}
+#else
+void app_trace(const char *fmt, ...) { (void)fmt; }
+#endif
+
+
 static struct kernelsnitch_shared_state *ks;
 static size_t mm_objs_per_slab;
 static unsigned char *skb_buf;
@@ -486,7 +532,9 @@ void setup_kernelsnitch(void) {
 }
 
 int kernelsnitch_collisions_ready(void) {
-  return kernelsnitch_found_collisions(ks);
+  int ready = kernelsnitch_found_collisions(ks);
+  app_trace("ksnitch: collisions_ready=%d", ready);
+  return ready;
 }
 
 void run_kernelsnitch_bruteforce(void) {

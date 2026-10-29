@@ -2415,6 +2415,7 @@ static int slide_leak_physical_base(void) {
     pr_warning("slide tracefs pre-oracle unavailable; using physical scan\n");
   }
 #endif
+  app_trace("slide_app: entering p0 oracle route");
   if (!prepare_p0_pipe_oracle()) {
     pr_error("p0 physical pipe preparation failed\n");
     return 0;

